@@ -2,6 +2,7 @@ from .mediaplayer import MediaPlayer
 from .protocol import SyncplayClientFactory
 from twisted.internet import reactor
 import click
+import hashlib
 
 
 @click.command()
@@ -28,9 +29,11 @@ def main(server, room, socket, username, password):
     input()
 
     player = MediaPlayer(socket)
-    connection_kwargs = {
-        'username': username, 'password': password, 'room': room
-    }
+    connection_kwargs = {'username': username, 'room': room}
+    if password:
+        hasher = hashlib.md5()
+        hasher.update(bytes(password, 'utf8'))
+        connection_kwargs['password'] = hasher.hexdigest()
     factory = SyncplayClientFactory(player, **connection_kwargs)
     reactor.connectTCP(host, port, factory)
     reactor.run()
